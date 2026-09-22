@@ -1,0 +1,32 @@
+# Virtual environments
+.venv/
+venv/
+
+# Python caches and test artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Runtime and local test logs
+*.log
+Manual-adhoc-test-runs/
+Output_testRun.txt
+
+# Databases and local models
+*.db
+*.sqlite
+*.sqlite3
+vector_store/
+models/
+
+# Secrets and environment
+.env
+.env.*
+!.env.example
+
+# IDE & OS files
+.vscode/
+.DS_Store
+Thumbs.db
