@@ -1,196 +1,156 @@
-# **Local Autonomous Agent: Architecture, Setup & Deployment Guide**
+<div align="center">
 
-# **Overview**
+# 🤖 Local-First Autonomous Agent
 
-This system runs locally against Ollama using `qwen2.5-coder:14b-instruct-q4_K_M` for both intent probing and task execution. The architecture operates with zero-cloud API dependencies, ensuring that no data leaves the local network.
+**A smart, fully private AI agent that writes code, runs commands, and manages tasks entirely on your own hardware.**
 
-# **Architecture & Design Highlights**
+[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
+[![Ollama](https://img.shields.io/badge/Ollama-Local_Inference-black.svg)](https://ollama.ai/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-## **Decoupled Tool Routing (The Gatekeeper Pattern)**
+</div>
 
-To resolve "tool magnetism"—a common issue in smaller models (like the 8B class) where the model attempts to use tools unnecessarily—this architecture implements the Gatekeeper Pattern. Pure conversational queries are processed in `tools=None` mode by default. Tools are dynamically attached only when the orchestrator detects explicit requirements for mathematical operations or temporal data, ensuring precision and reducing inference latency.
+> **No API keys. No cloud servers. No data leaks.** This project is a completely air-gapped agentic assistant that runs locally via Ollama. It was built to prove that you don't need heavy frameworks or expensive cloud models to build a highly capable, autonomous AI.
 
-## **Framework-Free Runtime**
+### Hi👋 
+This repository is designed to be accessible, transparent, and easy to run on standard consumer hardware (like a 16GB VRAM GPU). 
 
-The system utilizes Python standard library constructs and direct interaction with native OpenAI-compatible REST endpoints. Model selection and system configuration are managed in `personalities/general_cousin.py`. The runtime uses:
+While this system is completely **model-agnostic** (meaning you can easily swap in Llama 3.1, Gemma, or Mistral), it defaults to `qwen2.5-coder:14b-instruct`. We use Qwen because it punches incredibly far above its weight class when writing code and following strict instructions locally.
 
-&nbsp;
+---
 
-* `http.server` for the web interface.  
-* `urllib` for internal networking.  
-* `re` for robust parsing of model outputs.  
-* Direct interaction with native OpenAI-compatible REST endpoints.
+## 📖 The Deep-Dive Architecture Report
+For advanced developers wanting to look under the hood at the hardcore engineering—including our Key-Value (KV) cache retention strategies, VRAM allocation math, and 40-case execution logs—please read our detailed [**Architecture & Testing Deep-Dive Report**](./Architecture-and-Testing-Deep-Dive.md).
 
-## **Dual Frontend**
+---
 
-The system provides two distinct ways to interact with the agent:
+## ✨ How It Works (The Architecture)
 
-&nbsp;
+### 🛡️ 1. Smart Tool Routing (The Gatekeeper Pattern)
+Smaller local models often suffer from "tool magnetism"—they get confused and try to trigger tools (like writing files or doing math) even when you just want to have a casual chat. 
 
-1. **Interactive Terminal CLI**: A low-latency interface for developers and system administrators.  
-2. **Browser Chat GUI**: A zero-dependency web interface for a rich, visual user experience.
+To fix this, we built a **Guard-Gated Two-Phase Decoupled Dispatch** pipeline. In plain English: the system acts as a strict gatekeeper. It forces the AI to chat naturally by default, and only hands the AI its tools when the system explicitly detects that a tool is needed. This eliminates errors and makes the AI significantly faster.
 
-# **Repository Structure & Git Hygiene**
+### ⚡ 2. No Bloated Frameworks
+We deliberately avoided heavy, complicated AI frameworks (like LangChain or AutoGen) that eat up memory and hide how the AI actually works. This project is built using:
+* **Pure Python** standard libraries for total transparency.
+* **Strict Pydantic** data contracts to ensure the AI doesn't hallucinate fake data.
+* **Direct REST calls** to Ollama for maximum speed.
 
-## **Directory Tree**
+### 🖥️ 3. Two Ways to Interact
+* **Interactive Terminal (CLI):** A lightning-fast interface for developers, featuring safety "circuit breakers" that ask for your permission before the AI modifies any of your files.
+* **Browser Chat (GUI):** A clean, lightweight web interface for a rich, visual chatting experience.
 
-The repository separates core logic from local runtime artifacts to maintain a clean version control history..
+---
 
-&nbsp;
+## 📂 Repository Structure
 
-├── agent.py                 \# Main entry point for CLI and GUI
+```text
+├── agent.py                 # Main entry point for CLI and GUI runners
+├── core/                    # The raw-Python engine, intent router, and tool registry
+├── personalities/           # AI system prompts and configurations
+├── regression_suite.py      # Automated testing script to verify AI behavior
+├── tests/                   # Additional isolated unit tests
+├── requirements.txt         # Minimal dependency manifest
+└── .gitignore               # Excludes virtual environments, models, and local databases
+```
 
-&nbsp;
+## 🚀 Quick Start & Installation
 
-├── core/                    \# Logic for tool routing and model orchestration
+### Prerequisites
 
-&nbsp;
+Before getting started, ensure the following requirements are met:
 
-├── personalities/           \# System prompts and persona definitions
+- **OS:** Windows 10/11 (PowerShell recommended), macOS, or Linux
+- **Python:** 3.10 or higher
+- **Inference Backend:** [Ollama](https://ollama.ai/) installed and running locally at `http://localhost:11434`
 
-&nbsp;
+### 1. Environment Setup
 
-├── regression\_suite.py      \# Automated testing script
+Clone the repository and create a virtual environment:
 
-├── tests/                   \# Golden Regression Suite and unit tests
+```bash
+git clone https://github.com/ShreyasDatta/Local-Autonomous-Agent.git
+cd Local-Autonomous-Agent
 
-&nbsp;
+python -m venv .venv
 
-├── .gitignore               \# Standard exclusion rules
+# Windows (PowerShell)
+.venv\Scripts\Activate.ps1
 
-&nbsp;
+# macOS / Linux
+source .venv/bin/activate
 
-├── .venv/                   \# Ignored: Python virtual environment
+pip install -r requirements.txt
+```
 
-&nbsp;
+### 2. Model Acquisition
 
-├── models/                  \# Ignored: Local GGUF weights
+Pull the benchmark models using the Ollama CLI:
 
-&nbsp;
+```bash
+ollama pull qwen2.5-coder:14b-instruct-q4_K_M
+ollama pull nomic-embed-text:latest
+```
 
-└── vector\_store/            \# Ignored: SQLite chat history and DB files
+> 💡 **Note:** If you are running on lower-VRAM hardware, you can easily swap these models for smaller 7B/8B variants through the configuration files.
 
-## **Git Configuration**
+### 3. Run the Agent
 
-Use the following `.gitignore` to ensure local artifacts are not tracked:\# Python
+#### Interactive CLI Mode
 
-&nbsp;
+Launch the terminal-based interface:
 
-.venv/
+```bash
+python agent.py --cli
+```
 
-&nbsp;
+#### Browser GUI Mode
 
-\_\_pycache\_\_/
+Launch the lightweight web interface:
 
-&nbsp;
+```bash
+python agent.py --gui --port 8080
+```
 
-\*.pyc
+Once started, open:
 
-&nbsp;
+```text
+http://127.0.0.1:8080
+```
 
-\# Local Assets
+in your browser.
 
-&nbsp;
+---
 
-models/
+## 🧪 Automated Testing
 
-&nbsp;
+This repository includes a comprehensive **Regression Suite** designed to validate:
 
-vector\_store/\*.db
+- Multi-turn conversational flow (Does it remember what you said?)
+- Fast-path regex guards (Does it do math instantly?)
+- Tool-routing correctness (Does it use tools only when asked?)
 
-&nbsp;
+Run the local test harness with:
 
-logs/\*.log
+```bash
+python regression_suite.py
+```
 
-&nbsp;
+---
 
-\# Environment
+## 📚 References
 
-&nbsp;
+This project draws inspiration from the following resources:
 
-.env
+1. **https://www.anthropic.com/engineering/building-effective-agents**  
+   Insights into practical agentic design patterns and production-ready orchestration strategies from Anthropic.
 
-# **Prerequisites & Hardware Footprint**
+2. **https://github.com/ashishpatel26/500-AI-Agents-Projects**  
+   A large open-source catalog showcasing diverse AI agent implementations and architectures.
 
-## **System Requirements**
+---
 
-* **OS**: Windows 10/11 (PowerShell recommended), macOS, or Linux.  
-* **Python**: 3.10 or higher.  
-* **Inference**: Ollama inference server installed and running.
+## 📄 License
 
-## **Model Asset Footprint**
-
-| Model Asset | Description | Disk Footprint |
-| :---- | :---- | :---- |
-|  |  |  |
-| `qwen2.5-coder:14b-instruct-q4_K_M` | Technical & Coding Tasks | \~9.0 GB |
-| `nomic-embed-text:latest` | Vector Embeddings | \~274 MB |
-
-# **Step-by-Step Setup & Installation**
-
-## **1\. Environment Initialization**
-
-Clone the repository and prepare the Python environment:git clone \<repository-url\>
-
-&nbsp;
-
-cd local-autonomous-agent
-
-&nbsp;
-
-python \-m venv .venv
-
-&nbsp;
-
-source .venv/bin/activate  \# On Windows use: .venv\\Scripts\\activate
-
-&nbsp;
-
-pip install pydantic pytest
-
-## **2\. Model Acquisition**
-
-## **3\. Verification**
-
-Confirm the models are correctly indexed:ollama list
-
-# **Running the Agent**
-
-The agent can be initialized in various modes depending on the task requirements.
-
-## **CLI Execution**
-
-Initialize the command line interface:
-
-&nbsp;
-
-* python agent.py \--cli
-
-## **Web GUI Execution**
-
-For a browser-based experience:
-
-&nbsp;
-
-* Launch: python agent.py \--gui \--port 8080
-
-# **Testing & Verification**
-
-To ensure production stability, utilize the Golden Regression Suite. Verify the following capabilities:
-
-&nbsp;
-
-* **Conversational Flow**: Test multi-turn dialogue to ensure context retention.  
-* **Tool Execution**: Prompt for a calculation or current time to verify the Gatekeeper Pattern successfully attaches and executes tools.  
-* **Code Synthesis**: Request a Python script for data processing to verify Qwen 2.5-Coder performance.
-
-# **References & Knowledge Base**
-
-For further reading on the architectural principles and projects that inspired this system, refer to:
-
-&nbsp;
-
-* [Building Effective AI Agents](https://www.anthropic.com/engineering/building-effective-agents) — Insights on agentic design patterns from Anthropic.  
-* [500 AI Agents Projects](https://github.com/ashishpatel26/500-AI-Agents-Projects) — A comprehensive list of agent implementations.
-
-&nbsp;
+This project is licensed under the MIT License. See the `LICENSE` file for details.
