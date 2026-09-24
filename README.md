@@ -20,7 +20,7 @@ While this system is completely **model-agnostic** (meaning you can easily swap 
 ---
 
 ## 📖 The Deep-Dive Architecture Report
-For advanced developers wanting to look under the hood at the hardcore engineering—including our Key-Value (KV) cache retention strategies, VRAM allocation math, and 40-case execution logs—please read our detailed [**Coming Soon**](https://media.istockphoto.com/id/2171020551/vector/coming-soon-speechbubble-advertising-with-megaphone-icon.jpg?s=2048x2048&w=is&k=20&c=G1qMTFcbJoXIYT16KZjx7ElyGtilayAfy-JHSBIXixk=).
+For advanced developers wanting to look under the hood at the hardcore engineering—including our Key-Value (KV) cache retention strategies, VRAM allocation math, and 40-case execution logs—please read our detailed [*Why Local AI Agents Secretly Fail**](https://media.istockphoto.com/id/2171020551/vector/coming-soon-speechbubble-advertising-with-megaphone-icon.jpg?s=2048x2048&w=is&k=20&c=G1qMTFcbJoXIYT16KZjx7ElyGtilayAfy-JHSBIXixk=](https://shreyas-systems.hashnode.dev/debugging-local-llm-agents)).
 
 ---
 
